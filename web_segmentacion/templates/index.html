@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Detección de Daños</title>
+</head>
+<body>
+    <h1>Sube una imagen para detectar daños en casonas</h1>
+    <form action="/" method="POST" enctype="multipart/form-data">
+        <input type="file" name="imagen" accept="image/*" capture="environment">
+        <input type="submit" value="Analizar">
+    </form>
+
+    <br>
+    <a href="/galeria">
+        <button type="button">Ver galería de resultados</button>
+    </a>
+
+    {% if resultado %}
+        <h2>Resultado:</h2>
+        <img src="{{ url_for('static', filename='results/prediccion/' + resultado) }}">
+    {% endif %}
+</body>
+</html>
+

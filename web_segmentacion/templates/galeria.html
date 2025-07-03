@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Galería de Resultados</title>
+</head>
+<body>
+    <h1>Imágenes procesadas</h1>
+    <ul>
+    {% for imagen in imagenes %}
+        <li>
+            <img src="{{ url_for('static', filename='results/prediccion/' + imagen) }}" width="300">
+        </li>
+    {% endfor %}
+    </ul>
+    <a href="/">Volver al análisis</a>
+</body>
+</html>
