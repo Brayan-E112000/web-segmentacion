@@ -1,91 +1,74 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Detección de Daños Patrimoniales</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 2rem;
-            background-color: #f9f9f9;
-            color: #333;
-        }
-        h1 {
-            color: #2c3e50;
-        }
-        form {
-            margin-bottom: 1.5rem;
-        }
-        input[type="file"] {
-            margin-bottom: 1rem;
-        }
-        button {
-            background-color: #27ae60;
-            color: white;
-            border: none;
-            padding: 0.5rem 1rem;
-            font-size: 1rem;
-            cursor: pointer;
-            border-radius: 4px;
-        }
-        button:hover {
-            background-color: #219150;
-        }
-        .resultados {
-            margin-top: 2rem;
-            background: white;
-            padding: 1rem;
-            border-radius: 8px;
-            box-shadow: 0 0 8px rgba(0,0,0,0.1);
-            max-width: 500px;
-        }
-        ul {
-            list-style: none;
-            padding-left: 0;
-        }
-        ul li {
-            font-size: 1.2rem;
-            margin-bottom: 0.5rem;
-        }
-        .imagenes {
-            margin-top: 1rem;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 1rem;
-        }
-        .imagenes img {
-            max-width: 150px;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <title>Detector de Daños Patrimoniales</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body {
+      background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)),
+                  url('https://upload.wikimedia.org/wikipedia/commons/3/3d/Iglesia_Mar%C3%ADa_Auxiliadora%2C_Huancayo.jpg') no-repeat center center fixed;
+      background-size: cover;
+      color: #fff;
+    }
+    .container {
+      background-color: rgba(0, 0, 0, 0.75);
+      padding: 30px;
+      border-radius: 20px;
+      margin-top: 40px;
+      box-shadow: 0 0 30px rgba(0,0,0,0.5);
+    }
+    .progress-bar {
+      font-weight: bold;
+    }
+    .titulo {
+      text-align: center;
+      margin-bottom: 30px;
+      font-size: 2.5rem;
+    }
+    .img-fluid {
+      max-height: 300px;
+      object-fit: cover;
+      border: 3px solid #fff;
+    }
+    .form-label, h3, p {
+      color: #ffdd57;
+    }
+  </style>
 </head>
 <body>
-    <h1>Detección de Daños Patrimoniales en Casonas</h1>
+  <div class="container">
+    <h1 class="titulo">🧠 Detector de Daños en Casonas Patrimoniales</h1>
 
-    <form method="POST" enctype="multipart/form-data">
-        <label for="images">Sube una o más imágenes:</label><br />
-        <input type="file" name="images" id="images" multiple required /><br />
-        <button type="submit">Analizar</button>
+    <form method="POST" enctype="multipart/form-data" class="mb-4">
+      <div class="mb-3">
+        <label class="form-label">📷 Sube una o más imágenes:</label>
+        <input class="form-control" type="file" name="images" multiple required>
+      </div>
+      <button type="submit" class="btn btn-warning w-100">🔍 Analizar Daños</button>
     </form>
 
-    {% if porcentajes %}
-    <div class="resultados">
-        <h2>Resumen de Daños Detectados</h2>
-        <ul>
-          {% for tipo, porcentaje in porcentajes.items() %}
-            <li><strong>{{ tipo }}:</strong> {{ porcentaje }}%</li>
-          {% endfor %}
-        </ul>
-        <p><strong>Imágenes Analizadas:</strong> {{ imagenes|length }}</p>
-
-        <div class="imagenes">
-          {% for img in imagenes %}
-            <img src="{{ url_for('static', filename='results/' + img) }}" alt="Resultado {{ loop.index }}" />
-          {% endfor %}
-        </div>
-    </div>
+    {% if imagenes %}
+      <h3 class="text-center mt-4">🖼 Resultados de Segmentación</h3>
+      <div class="row mt-3">
+        {% for img in imagenes %}
+          <div class="col-md-4 mb-3">
+            <img src="{{ url_for('static', filename='results/' ~ img) }}" class="img-fluid rounded shadow">
+          </div>
+        {% endfor %}
+      </div>
     {% endif %}
+
+    <h3 class="text-center mt-4">📊 Análisis de Daños</h3>
+    {% for clase, porcentaje in porcentajes.items() %}
+      <p>{{ clase }}: {{ porcentaje }}%</p>
+      <div class="progress mb-3">
+        <div class="progress-bar bg-{{ 'danger' if porcentaje > 60 else 'warning' if porcentaje > 30 else 'success' }}" 
+             style="width: {{ porcentaje }}%;">
+          {{ porcentaje }}%
+        </div>
+      </div>
+    {% endfor %}
+  </div>
 </body>
 </html>

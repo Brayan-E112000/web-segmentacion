@@ -3,78 +3,70 @@ from ultralytics import YOLO
 import os
 import uuid
 from collections import Counter
-from PIL import Image
-import pytesseract
+import urllib.request
 
 app = Flask(__name__)
-model = YOLO("modelo/best.pt")
+os.makedirs("static/uploads", exist_ok=True)
+os.makedirs("static/results", exist_ok=True)
 
-UPLOAD_FOLDER = "static/uploads"
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+# ========== DESCARGA DEL MODELO DESDE GOOGLE DRIVE ==========
+MODEL_PATH = "best.pt"
+MODEL_URL = "https://drive.google.com/uc?export=download&id=1h08AfLSOvvLEDMCPNIHWWZJSKqpy2CM4"
 
-# Traducción de clases (según tu modelo)
-CLASSES_TRADUCIDAS = {
-    "grieta": "Grietas",
-    "humedad": "Humedad",
-    "desprendimiento de material": "Desprendimiento"
+if not os.path.exists(MODEL_PATH):
+    print("Descargando modelo desde Google Drive...")
+    urllib.request.urlretrieve(MODEL_URL, MODEL_PATH)
+
+# ========== CARGA DEL MODELO ==========
+model = YOLO(MODEL_PATH)
+
+# Traducción de clases
+CLASS_TRANSLATIONS = {
+    "crack": "Grietas",
+    "humidity": "Humedad",
+    "detachment": "Desprendimiento"
 }
 
-@app.route("/", methods=["GET", "POST"])
+@app.route('/', methods=['GET', 'POST'])
 def index():
-    resultados = []
-    resumen_final = {"Grietas": 0, "Humedad": 0, "Desprendimiento": 0}
-    imagenes_subidas = []
+    analysis = {}
+    if request.method == 'POST':
+        images = request.files.getlist('images')
+        total_counts = Counter()
+        filenames = []
 
-    if request.method == "POST":
-        archivos = request.files.getlist("images")
+        for image in images:
+            filename = f"{uuid.uuid4().hex}.jpg"
+            filepath = os.path.join("static/uploads", filename)
+            image.save(filepath)
 
-        for archivo in archivos:
-            if archivo:
-                filename = str(uuid.uuid4()) + os.path.splitext(archivo.filename)[1]
-                filepath = os.path.join(UPLOAD_FOLDER, filename)
-                archivo.save(filepath)
+            results = model.predict(filepath, task="segment")
+            names = model.names
+            result = results[0]
 
-                imagenes_subidas.append(filename)
+            masks = result.masks
+            classes = result.boxes.cls.tolist() if result.boxes else []
 
-                # Ejecutar predicción
-                results = model.predict(filepath)[0]
+            class_counts = Counter()
+            for c in classes:
+                class_name = names[int(c)]
+                class_counts[class_name] += 1
 
-                # Contar clases por OCR sobre los labels en la imagen (ya que las etiquetas aparecen dibujadas)
-                image = Image.open(filepath)
-                text = pytesseract.image_to_string(image).lower()
+            total_counts += class_counts
+            filenames.append(filename)
 
-                contador = Counter()
-                for clase in CLASSES_TRADUCIDAS.keys():
-                    if clase in text:
-                        contador[clase] += text.count(clase)
+        total = sum(total_counts.values())
+        for key in ["crack", "humidity", "detachment"]:
+            count = total_counts.get(key, 0)
+            percent = (count / total * 100) if total > 0 else 0
+            analysis[key] = {
+                "translated": CLASS_TRANSLATIONS.get(key, key),
+                "percent": round(percent, 1)
+            }
 
-                resultado_imagen = {}
+    return render_template("index.html", analysis=analysis)
 
-                for clase_en, clase_es in CLASSES_TRADUCIDAS.items():
-                    cantidad = contador[clase_en]
-                    resultado_imagen[clase_es] = cantidad
-                    resumen_final[clase_es] += cantidad
-
-                resultados.append({
-                    "archivo": filename,
-                    "resultado": resultado_imagen
-                })
-
-        # Calcular porcentajes totales
-        total = sum(resumen_final.values())
-        porcentajes = {}
-        for clase, cantidad in resumen_final.items():
-            if total == 0:
-                porcentajes[clase] = 0
-            else:
-                porcentajes[clase] = round((cantidad / total) * 100, 1)
-
-        return render_template("index.html", resultados=resultados, resumen=porcentajes, imagenes=imagenes_subidas)
-
-    return render_template("index.html")
-
-# 👇 ESTA PARTE ES LA QUE CAMBIAMOS PARA RENDER 👇
-if __name__ == "__main__":
-    import os
+# ========== CONFIGURACIÓN PARA RAILWAY ==========
+if __name__ == '__main__':
     port = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=port, debug=True)
+    app.run(host='0.0.0.0', port=port)
