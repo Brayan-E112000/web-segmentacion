@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Detección de Daños Patrimoniales</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 2rem;
+            background-color: #f9f9f9;
+            color: #333;
+        }
+        h1 {
+            color: #2c3e50;
+        }
+        form {
+            margin-bottom: 1.5rem;
+        }
+        input[type="file"] {
+            margin-bottom: 1rem;
+        }
+        button {
+            background-color: #27ae60;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            font-size: 1rem;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        button:hover {
+            background-color: #219150;
+        }
+        .resultados {
+            margin-top: 2rem;
+            background: white;
+            padding: 1rem;
+            border-radius: 8px;
+            box-shadow: 0 0 8px rgba(0,0,0,0.1);
+            max-width: 500px;
+        }
+        ul {
+            list-style: none;
+            padding-left: 0;
+        }
+        ul li {
+            font-size: 1.2rem;
+            margin-bottom: 0.5rem;
+        }
+        .imagenes {
+            margin-top: 1rem;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        .imagenes img {
+            max-width: 150px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Detección de Daños Patrimoniales en Casonas</h1>
+
+    <form method="POST" enctype="multipart/form-data">
+        <label for="images">Sube una o más imágenes:</label><br />
+        <input type="file" name="images" id="images" multiple required /><br />
+        <button type="submit">Analizar</button>
+    </form>
+
+    {% if porcentajes %}
+    <div class="resultados">
+        <h2>Resumen de Daños Detectados</h2>
+        <ul>
+          {% for tipo, porcentaje in porcentajes.items() %}
+            <li><strong>{{ tipo }}:</strong> {{ porcentaje }}%</li>
+          {% endfor %}
+        </ul>
+        <p><strong>Imágenes Analizadas:</strong> {{ imagenes|length }}</p>
+
+        <div class="imagenes">
+          {% for img in imagenes %}
+            <img src="{{ url_for('static', filename='results/' + img) }}" alt="Resultado {{ loop.index }}" />
+          {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+</body>
+</html>

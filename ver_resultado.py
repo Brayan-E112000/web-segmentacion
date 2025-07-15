@@ -1,0 +1,34 @@
+from ultralytics import YOLO
+
+# Cargar el modelo YOLO segmentado
+model = YOLO("best.pt")
+
+# Ruta de la imagen de prueba (asegúrate de que exista y esté bien escrita)
+image_path = "static/uploads/PRUEBA 01.jpg"
+
+# Ejecutar predicción
+results = model(image_path)
+
+# Inspeccionar resultados
+for result in results:
+    print("➡️ ATRIBUTOS DISPONIBLES EN result:")
+    print(dir(result))  # Ver qué atributos tiene
+
+    print("\n✅ result.names:")
+    print(result.names)  # Diccionario de clases
+
+    print("\n📦 result.boxes:")
+    print(result.boxes)  # Bounding boxes (si existen)
+
+    print("\n🧠 result.masks:")
+    print(result.masks)  # Segmentaciones (si existen)
+
+    print("\n🧪 result.probs:")
+    print(result.probs)  # Probabilidades por clase (solo en clasificación)
+
+    print("\n🖼️ Imagen original shape:")
+    print(result.orig_img.shape)  # Tamaño de la imagen original
+
+    print("\n📊 CONTENIDO COMPLETO DEL RESULTADO:")
+    print(result)  # Todo el contenido como texto
+
