@@ -1,3 +1,9 @@
+<<<<<<< HEAD
 Flask
 ultralytics
 numpy
+=======
+flask
+ultralytics
+numpy
+>>>>>>> 536bd878816bff700b5419a08d3aaebbf30e985e
